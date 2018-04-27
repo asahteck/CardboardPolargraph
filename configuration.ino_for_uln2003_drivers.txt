@@ -1,0 +1,72 @@
+Configuration.
+
+This is one of the core files for the polargraph server program.  
+It sets up the motor objects (AccelSteppers), and has default
+values for the motor, sprocket and microstepping combinations used
+by polargraphs so far.
+*/
+
+#ifdef UNL2003_DRIVER
+// Initialize ULN2003 stepper driver
+// first number is type of stepper motor, 4 for a normal 4 wire step motor, 8 for a halfstepped normal 4 wire motor
+//Connection Directions
+#define FULLSTEP 4
+#define HALFSTEP 8
+// motor pins
+#define motorPin1  4     // Blue   - 28BYJ48 pin 1
+#define motorPin2  5     // Pink   - 28BYJ48 pin 2
+#define motorPin3  6     // Yellow - 28BYJ48 pin 3
+#define motorPin4  7     // Orange - 28BYJ48 pin 4
+                        // Red    - 28BYJ48 pin 5 (VCC)
+                        
+#define motorPin5  8     // Blue   - 28BYJ48 pin 1
+#define motorPin6  9     // Pink   - 28BYJ48 pin 2
+#define motorPin7  10    // Yellow - 28BYJ48 pin 3
+#define motorPin8  11    // Orange - 28BYJ48 pin 4
+                        // Red    - 28BYJ48 pin 5 (VCC)
+
+//for a 28YBJ-48 Stepper, change these parameters above
+//Step angle (8-step) 5.625deg, 64 steps per rev
+//Step angle (4-step) 11.25deg, 32 steps per rev
+//gear reduction ratio 1/63.68395
+
+// motorStepsPerRev = 32 * 63.68395 = 2038; //for 4 step sequence
+// motorStepsPerRev = 64 * 63.68395 = 4076; //for 8 step sequence
+
+// motorStepsPerRev = 4076;
+// mmPerRev = 63;
+// DEFAULT_STEPS_PER_REV = 4076;
+// DEFAULT_MM_PER_REV = 63;
+
+AccelStepper motorA(HALFSTEP, motorPin1, motorPin3, motorPin2, motorPin4);
+AccelStepper motorB(HALFSTEP, motorPin5, motorPin7, motorPin6, motorPin8);
+//swapped first and last on motorA and motor configs
+#endif
+
+void configuration_motorSetup()
+{
+#ifdef SERIAL_STEPPER_DRIVERS
+  pinMode(MOTOR_A_ENABLE_PIN, OUTPUT);
+  digitalWrite(MOTOR_A_ENABLE_PIN, HIGH);
+  pinMode(MOTOR_B_ENABLE_PIN, OUTPUT);
+  digitalWrite(MOTOR_B_ENABLE_PIN, HIGH);
+  motorA.setEnablePin(MOTOR_A_ENABLE_PIN);
+  motorA.setPinsInverted(false, false, true);
+  motorB.setEnablePin(MOTOR_B_ENABLE_PIN);
+  motorB.setPinsInverted(true, false, true); // this one turns the opposite direction to A, hence inverted.
+#endif
+}
+
+void configuration_setup()
+{
+  mmPerStep = mmPerRev / multiplier(motorStepsPerRev);
+  stepsPerMM = multiplier(motorStepsPerRev) / mmPerRev;
+  
+#ifdef ADAFRUIT_MOTORSHIELD_V2
+  AFMS.begin();  // create with the default frequency 1.6KHz
+#endif
+  delay(500);
+  
+}
+// end of Adafruit motorshield definition
+// =================================================================
